@@ -153,18 +153,58 @@ def list_filter(source_list, filter_list):
     return result_list
 
 
+def parse_index_config(indexes):
+    """Parses a config string of indexes into a list of tuples with nested list of indexes
+
+    Args:
+        indexes: string containing the list of indexes to parse
+
+    Returns:
+        A list of tuples
+    """
+
+    import re
+
+    from itertools import izip_longest
+
+    indexes_paren_split = re.findall('\(.*?\)', ''.join(indexes.split())[1:-1])
+
+    indexes_bracket_split = (x.partition(',') for x in indexes_paren_split)
+    replace_chars = ['(', ')', '[', ']']
+
+    result = []
+
+    for item in indexes_bracket_split:
+        f, _, l = item
+        nl = ''
+        nf = ''
+        for fc, lc in izip_longest(f, l):
+            if lc not in replace_chars and lc is not None:
+                nl += lc
+            if fc not in replace_chars and fc is not None:
+                nf += fc
+
+        result.append((nf, nl.split(',')))
+
+    return result
+
+
 def add_index(db, indexes):
+    # TODO: Add unit tests
+    # TODO: Add error handling
     """Adds an index to the collection and list of fields passed
 
     Args:
         db: The database to perform the operation in
-        indexes:    A list of 2 item tuples, index 0 containing the collection name
+        indexes:    A list of 2 item tuples, tuple index 0 containing the collection name
                     and index 1 containing a list of fields
 
     Returns:
         list of operations performed
     """
-    pass
+    for c, fi in indexes:
+        for f in fi:
+            db[locals()['c']].create_index(locals()['f'])
 
 
 def add_string_id_to_document(db, collections, excluded_collections=[]):
@@ -176,9 +216,12 @@ def add_string_id_to_document(db, collections, excluded_collections=[]):
     aggregation stage
 
     Args:
-        db:
+        db: Database to perform the operation in
+        collections: List of collections to perform the operations against
+        excluded_collections: List of collections to exclude if required
 
     Returns:
+        No return it performs a bulk operation on the database passed
     """
     import bson
     from pymongo.errors import InvalidOperation
@@ -260,6 +303,10 @@ def main(cfg_file='./report.cfg'):
 
         add_string_id_to_document(source_db, collections_source,
                                   ['event', 'audit', 'chunks', 'excel', 'lookup', 'files'])
+
+        required_indexes = get_config(cfg_file, 'SourceDB')['indexes']
+
+        add_index(source_db, parse_index_config(required_indexes))
 
     except KeyError as main_error:
         logging.error('Failed to execute main function with error: %s', main_error)
