@@ -1,0 +1,4 @@
+{
+  "test.py::test_result_connect_database": true, 
+  "test.py::test_type_connect_database": true
+}
