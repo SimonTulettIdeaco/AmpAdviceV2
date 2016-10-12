@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 # TODO: Think about how to handle the deletion of data that is populated into an audit collection
 # TODO: Maybe Add PDF upload to DraftAdviceDocumentFinalised as well as word document
-
+# TODO: Refactor pipeline to use $$ROOT and remove field repetition
 try:
     UTC = pytz.utc
     ZERO_DATE = datetime.fromtimestamp(0, pytz.utc)
@@ -2647,6 +2647,9 @@ pipeline = ([
                                        }]}, True,
                               False]}
             }
-    }, {"$out": "report.adviceJourneyLatest"}
+    },
+    {"$match": {"_id": {"$not": {"$eq": None}}}}
+    ,
+    {"$out": "report.adviceJourneyLatest"}
 ]
 )

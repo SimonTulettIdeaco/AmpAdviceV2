@@ -36,6 +36,15 @@ pipeline = [
                 "ConciergeFirstName": 1,
                 "ConciergeLastName": 1,
                 "AdviserNotes": 1,
+                "InitialFeePackageAmount": 1,
+                "InitialFeePackageChosen": 1,
+                "DropOut": 1,
+                "DropOutDate": 1,
+                "DropOutReason": 1,
+                "R1Customer": 1,
+                "HasPreviousConsultation": 1,
+                "ProceedToOnGoingAdvice": 1,
+
             }
     },
     {
@@ -74,6 +83,7 @@ vFields = {
 
 # Create Pipeline
 def create_project(vf):
+    # TODO: Handle the duplication of pipeline fields causing unnecessary iteration
     """"Dynamically generates a mongo aggregation framework query using the field list provided
     Args:
         vf: List of versioned fields
@@ -81,7 +91,8 @@ def create_project(vf):
         Mongo aggregation framework query for use by pymongo
     """
     try:
-        for _, li, _ in vf:
+        for item in vf:
+            _, li, _ = item.values()
             dff = json.loads(json.dumps(vFields).replace('xxx', li))
             for d in pipeline:
                 if "$project" in d.keys():

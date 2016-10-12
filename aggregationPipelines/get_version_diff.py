@@ -6,6 +6,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 # TODO: Convert the diff on static fields to dynamically generated JSON
+# TODO: Convert non versioned fields to dynamically generated $project as well
+# TODO: Need to handle removal of non versioned fields, these are filtered out and not updated.
 # Pipeline static
 pipeline = (
     [
@@ -45,6 +47,14 @@ pipeline = (
                     "AdviserLastName": "$newVersion.AdviserLastName",
                     "ConciergeFirstName": "$newVersion.ConciergeFirstName",
                     "ConciergeLastName": "$newVersion.ConciergeLastName",
+                    "InitialFeePackageAmount": "$newVersion.InitialFeePackageAmount",
+                    "InitialFeePackageChosen": "$newVersion.InitialFeePackageChosen",
+                    "DropOut": "$newVersion.DropOut",
+                    "DropOutDate": "$newVersion.DropOutDate",
+                    "DropOutReason": "$newVersion.DropOutReason",
+                    "R1Customer": "$newVersion.R1Customer",
+                    "HasPreviousConsultation": "$newVersion.HasPreviousConsultation",
+                    "ProceedToOnGoingAdvice": "$newVersion.ProceedToOnGoingAdvice",
                     "NonVersionedChanged":
                         {
                             "$or":
@@ -75,6 +85,26 @@ pipeline = (
                                               {"$ne": ['$newVersion.ConciergeFirstName', '$ConciergeFirstName']}]},
                                     {"$and": [{"$gt": ["$newVersion.ConciergeLastName", 0]},
                                               {"$ne": ['$newVersion.ConciergeLastName', '$ConciergeLastName']}]},
+                                    {"$and": [{"$gt": ["$newVersion.InitialFeePackageAmount", 0]},
+                                              {"$ne": ['$newVersion.InitialFeePackageAmount',
+                                                       '$InitialFeePackageAmount']}]},
+                                    {"$and": [{"$gt": ["$newVersion.InitialFeePackageChosen", 0]},
+                                              {"$ne": ['$newVersion.InitialFeePackageChosen',
+                                                       '$InitialFeePackageChosen']}]},
+                                    {"$and": [{"$gt": ["$newVersion.DropOut", 0]},
+                                              {"$ne": ['$newVersion.DropOut', '$DropOut']}]},
+                                    {"$and": [{"$gt": ["$newVersion.DropOutDate", 0]},
+                                              {"$ne": ['$newVersion.DropOutDate', '$DropOutDate']}]},
+                                    {"$and": [{"$gt": ["$newVersion.DropOutReason", 0]},
+                                              {"$ne": ['$newVersion.DropOutReason', '$DropOutReason']}]},
+                                    {"$and": [{"$gt": ["$newVersion.R1Customer", 0]},
+                                              {"$ne": ['$newVersion.R1Customer', '$R1Customer']}]},
+                                    {"$and": [{"$gt": ["$newVersion.HasPreviousConsultation", 0]},
+                                              {"$ne": ['$newVersion.HasPreviousConsultation',
+                                                       '$HasPreviousConsultation']}]},
+                                    {"$and": [{"$gt": ["$newVersion.ProceedToOnGoingAdvice", 0]},
+                                              {"$ne": ['$newVersion.ProceedToOnGoingAdvice',
+                                                       '$ProceedToOnGoingAdvice']}]},
 
                                 ]
                         },
@@ -176,7 +206,8 @@ def create_project(vf):
             Mongo aggregation framework query for use by pymongo
         """
     try:
-        for _, li, _ in vf:
+        for item in vf:
+            _, li, _ = item.values()
             vfg = json.loads(json.dumps(vFields).replace('xxx', li))
             dfm = json.loads(json.dumps(mFields).replace('xxx', li))
             for d in pipeline:

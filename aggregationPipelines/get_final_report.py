@@ -382,12 +382,14 @@ vFieldsFirst = {
 # Create pipeline
 def create_project(vf):
     try:
-        for li in vf:
-            if li[2] == 1:
-                vfl = json.loads(json.dumps(vFieldsLatest).replace('xxxN', li[1]).replace('xxxA', li[0]))
+        for item in vf:
+            if item.get('latestVersion') == 1:
+                vfl = json.loads(
+                    json.dumps(vFieldsLatest).replace('xxxN', item.get('pipeline')).replace('xxxA', item.get('alias')))
                 pipeline[0]["$project"].update(vfl)
-            elif li[2] == 0:
-                vfo = json.loads(json.dumps(vFieldsFirst).replace('xxxN', li[1]).replace('xxxA', li[0]))
+            elif item.get('latestVersion') == 0:
+                vfo = json.loads(
+                    json.dumps(vFieldsFirst).replace('xxxN', item.get('pipeline')).replace('xxxA', item.get('alias')))
                 pipeline[0]["$project"].update(vfo)
         return pipeline
     except AttributeError as pipe_err:
